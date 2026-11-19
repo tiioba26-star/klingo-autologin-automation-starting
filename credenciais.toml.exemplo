@@ -1,0 +1,8 @@
+# Copie para credenciais.toml (que NÃO vai para o git) e preencha.
+# O build.ps1 usa estes valores para preencher o config.toml das 4 pastas.
+
+[klingo]
+url = "https://..."
+usuario = ""
+senha = ""
+voz = "Thalita"

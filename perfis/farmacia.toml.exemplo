@@ -1,0 +1,30 @@
+# Perfil: farmacia — recepção farmácia (voz feminina)
+# Renomeie para config.toml e coloque na mesma pasta do klingo-launcher.exe.
+
+[klingo]
+url = "PREENCHER"            # endereço da tela de login da Klingo
+usuario = "PREENCHER"        # mesmo usuário para todas as máquinas
+senha = "PREENCHER"
+
+[painel]
+unidade = "Recepção Farmácia"
+modo = "painel"                  # "painel" ou "totem"
+voz = "Francisca"                   # nome (ou pedaço do nome) da voz; rode o exe com --vozes para ver as opções
+
+[tempos]
+atraso_inicial_seg = 15      # espera antes de começar (internet subir)
+espera_internet_max_seg = 300
+espera_pausado_seg = 90      # se aparecer "pausado por segundo acesso", espera isto...
+jitter_max_seg = 30          # ...mais um sorteio de 0 a N s, para as máquinas não baterem juntas
+max_tentativas = 10
+timeout_passo_seg = 30
+
+[edge]
+caminho = ""                 # vazio = acha o Edge sozinho
+porta_cdp = 9222
+
+[desligamento]
+horario = "18:00"
+aviso_seg = 60               # caixa de aviso com botão Cancelar antes de desligar
+espera_fechar_apps_seg = 30  # tempo para os apps fecharem sozinhos
+forcar = true                # depois da espera, força o que sobrou (evita travar na tela de desligar)
