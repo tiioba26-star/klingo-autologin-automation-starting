@@ -61,6 +61,12 @@ def _message_box_timeout(texto: str, estilo: int, segundos: int) -> int:
     return fn(None, texto, TITULO, estilo, 0, segundos * 1000)
 
 
+def manter_ligado() -> None:
+    """Enquanto este processo viver, a tela não apaga e o PC não suspende (não precisa de admin)."""
+    ES_CONTINUOUS, ES_SYSTEM_REQUIRED, ES_DISPLAY_REQUIRED = 0x80000000, 0x1, 0x2
+    kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED)
+
+
 class InstanciaUnica:
     """Mutex nomeado: impede que o exe rode duas vezes ao mesmo tempo (logon + clique manual)."""
 

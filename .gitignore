@@ -6,6 +6,7 @@ __pycache__/
 # Build
 build/
 dist/
+maquinas/
 *.spec
 
 # NUNCA versionar senhas / dados locais

@@ -57,6 +57,7 @@ class Edge:
 
 @dataclass(frozen=True)
 class Desligamento:
+    ativo: bool
     horario: str
     aviso_seg: int
     espera_fechar_apps_seg: int
@@ -150,6 +151,7 @@ def carregar(caminho: Path | None = None) -> Config:
             porta_cdp=int(e.get("porta_cdp", 9222)),
         ),
         desligamento=Desligamento(
+            ativo=bool(d.get("ativo", True)),
             horario=f"{int(hh):02d}:{int(mm):02d}",
             aviso_seg=int(d.get("aviso_seg", 60)),
             espera_fechar_apps_seg=int(d.get("espera_fechar_apps_seg", 30)),

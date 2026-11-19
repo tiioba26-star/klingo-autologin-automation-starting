@@ -177,7 +177,10 @@ def _abrir_localizacao(page: Page) -> Locator:
 
 def _sair_da_conta(page: Page) -> None:
     try:
-        page.locator(S.MENU_USUARIO).click(timeout=5000)
+        menu = page.locator(S.MENU_USUARIO)
+        if not menu.is_visible():
+            page.locator(S.MENU_RECOLHIDO).filter(visible=True).first.click(timeout=5000)
+        menu.click(timeout=5000)
         page.locator(".dropdown-item", has_text=S.ITEM_SAIR).first.click(timeout=5000)
         page.wait_for_timeout(1500)
         log.info("Saí da conta (libera o usuário para as outras máquinas)")

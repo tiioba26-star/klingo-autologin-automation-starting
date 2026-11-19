@@ -25,6 +25,7 @@ LINK_PAINEL = "Abrir Painel de Chamada"
 # O link do totem é o texto exato configurado em [painel] totem_botao.
 
 # --- Sair da conta -----------------------------------------------------------
+MENU_RECOLHIDO = "button.navbar-toggler"  # botão ☰ que aparece em janelas estreitas
 MENU_USUARIO = "#navbarDropdown"
 ITEM_SAIR = re.compile(r"^\s*Sair", re.I)
 

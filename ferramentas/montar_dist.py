@@ -1,6 +1,8 @@
-"""Monta dist/<perfil>/ com o exe + config.toml já preenchido a partir de credenciais.toml.
+"""Monta maquinas/<máquina>/ com: klingo-launcher.exe + config.toml (preenchido) + links.json.
 
 Uso (o build.ps1 chama isto):  python ferramentas/montar_dist.py
+- Credenciais vêm de credenciais.toml (fora do git).
+- links.json (da raiz, gerado por ferramentas/descobrir_links.py) evita login no primeiro boot.
 """
 
 from __future__ import annotations
@@ -15,7 +17,17 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 EXE = RAIZ / "build" / "pyinstaller" / "klingo-launcher.exe"
 CREDENCIAIS = RAIZ / "credenciais.toml"
-SAIDA = RAIZ / "dist"
+LINKS = RAIZ / "links.json"
+SAIDA = RAIZ / "maquinas"
+
+# pasta da máquina -> perfil (perfis/<perfil>.toml.exemplo)
+MAQUINAS = {
+    "particular-1": "particular",
+    "particular-2": "particular",
+    "consultorio": "consultorio",
+    "farmacia": "farmacia",
+    "totem": "totem",
+}
 
 
 def _toml_str(valor: str) -> str:
@@ -33,14 +45,16 @@ def main() -> int:
         cred = tomllib.loads(CREDENCIAIS.read_text(encoding="utf-8-sig")).get("klingo", {})
     else:
         print("AVISO: credenciais.toml não existe; os config.toml sairão com PREENCHER.")
+    if not LINKS.is_file():
+        print("AVISO: links.json não existe; cada máquina vai logar uma vez para descobrir o link.")
 
-    for modelo in sorted((RAIZ / "perfis").glob("*.toml.exemplo")):
-        perfil = modelo.name.removesuffix(".toml.exemplo")
-        pasta = SAIDA / perfil
+    for maquina, perfil in MAQUINAS.items():
+        pasta = SAIDA / maquina
         pasta.mkdir(parents=True, exist_ok=True)
         shutil.copy2(EXE, pasta / EXE.name)
 
-        texto = modelo.read_text(encoding="utf-8")
+        texto = (RAIZ / "perfis" / f"{perfil}.toml.exemplo").read_text(encoding="utf-8")
+        texto = texto.replace(f"# Perfil: {perfil}", f"# Máquina: {maquina} (perfil {perfil})", 1)
         for chave in ("url", "usuario", "senha"):
             if chave in cred:
                 texto = re.sub(
@@ -50,9 +64,11 @@ def main() -> int:
                     count=1,
                     flags=re.M,
                 )
-        (pasta / "config.toml").write_text(texto, encoding="utf-8")
         tomllib.loads(texto)  # garante que o arquivo gerado é TOML válido
-        print(f"  dist/{perfil}/  ->  {EXE.name} + config.toml")
+        (pasta / "config.toml").write_text(texto, encoding="utf-8")
+        if LINKS.is_file():
+            shutil.copy2(LINKS, pasta / "links.json")
+        print(f"  maquinas/{maquina:13} perfil {perfil}")
 
     return 0
 

@@ -1,9 +1,9 @@
 """Ponto de entrada do klingo-launcher.exe.
 
-    klingo-launcher.exe                 abre o painel/totem (o que roda no logon)
-    klingo-launcher.exe --instalar      cria as tarefas (logon + desligamento) — pede admin
-    klingo-launcher.exe --desinstalar   remove as tarefas
-    klingo-launcher.exe --desligar      fecha os apps e desliga (o que roda às 18h)
+    klingo-launcher.exe                 abre o painel/totem e fica esperando para desligar no horário
+    klingo-launcher.exe --instalar      cria o atalho em shell:startup (não precisa de admin)
+    klingo-launcher.exe --desinstalar   remove o atalho
+    klingo-launcher.exe --desligar      aviso → fecha os apps → desliga (agora)
     klingo-launcher.exe --vozes         lista e testa as vozes pt-BR do Edge
 """
 
@@ -15,7 +15,7 @@ import sys
 import traceback
 from pathlib import Path
 
-from . import __version__, agendador, config, desligar, fluxo, vozes
+from . import __version__, config, desligar, fluxo, inicializacao, vozes
 from .janelas import MB_ICONERROR, InstanciaUnica, mensagem
 from .log import configurar as configurar_log
 from .log import log
@@ -30,8 +30,16 @@ def _args(argv: list[str] | None) -> argparse.Namespace:
     g.add_argument("--vozes", action="store_true")
     p.add_argument("--simular", action="store_true", help="com --desligar: faz tudo menos desligar")
     p.add_argument("--config", type=Path, help="caminho do config.toml (padrão: ao lado do exe)")
-    p.add_argument("--usuario", help=argparse.SUPPRESS)  # passado ao relançar como admin
     return p.parse_args(argv)
+
+
+def _avisar_erro(e: Exception, pasta: Path, segundos: int) -> None:
+    log.error("Falhou: %s\n%s", e, traceback.format_exc())
+    mensagem(
+        f"Não consegui concluir automaticamente:\n\n{e}\n\nDetalhes em: {pasta / 'klingo.log'}",
+        icone=MB_ICONERROR,
+        segundos=segundos,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -42,11 +50,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if a.desinstalar:
-            if not agendador.eh_admin():
-                agendador.reabrir_como_admin(["--desinstalar"])
-                return 0
-            agendador.desinstalar()
-            mensagem("Tarefas removidas.")
+            inicializacao.desinstalar()
+            mensagem("Atalho removido da Inicialização do Windows.")
             return 0
 
         if a.vozes:
@@ -62,44 +67,46 @@ def main(argv: list[str] | None = None) -> int:
         cfg = config.carregar(a.config)
 
         if a.instalar:
-            if not agendador.eh_admin():
-                # Guarda o usuário de quem clicou: o admin do UAC pode ser outra conta.
-                agendador.reabrir_como_admin(["--instalar", "--usuario", agendador.usuario_atual()])
-                return 0
-            usuario = a.usuario or agendador.usuario_atual()
-            agendador.instalar(cfg, usuario)
+            atalho = inicializacao.instalar()
+            desl = (f"• Desliga o PC todo dia às {cfg.desligamento.horario}"
+                    if cfg.desligamento.ativo else "• Desligamento automático: desativado")
             mensagem(
-                f"Instalado para o usuário {usuario}.\n\n"
-                f"• Abre o {cfg.painel.modo} sozinho ao entrar no Windows\n"
-                f"• Desliga o PC todo dia às {cfg.desligamento.horario}"
+                f"Pronto! Atalho criado em:\n{atalho}\n\n"
+                f"• Ao entrar no Windows, abre o {cfg.painel.modo} ({cfg.painel.recepcao})\n{desl}\n\n"
+                "Não mova esta pasta de lugar (o atalho aponta para ela)."
             )
             return 0
 
         if a.desligar:
             desligar.executar(cfg, simular=a.simular)
             return 0
-
-        # Uma execução por pasta (cada pasta = um perfil).
-        pasta_id = hashlib.sha1(str(cfg.pasta).lower().encode()).hexdigest()[:12]
-        unica = InstanciaUnica(f"klingo-launcher-{pasta_id}")
-        if unica.ja_rodando:
-            log.info("Já existe uma execução em andamento; saindo")
-            return 0
-        try:
-            fluxo.executar(cfg)
-        finally:
-            unica.liberar()
-        return 0
-
     except Exception as e:  # noqa: BLE001 — último recurso: registrar e avisar na tela
-        log.error("Falhou: %s\n%s", e, traceback.format_exc())
-        mensagem(
-            f"Não consegui concluir automaticamente:\n\n{e}\n\n"
-            f"Detalhes em: {pasta / 'klingo.log'}",
-            icone=MB_ICONERROR,
-            segundos=0 if a.instalar or a.desinstalar else 300,
-        )
+        _avisar_erro(e, pasta, segundos=0)
         return 1
+
+    # ---- Execução normal (atalho do startup) ----------------------------------
+    pasta_id = hashlib.sha1(str(cfg.pasta).lower().encode()).hexdigest()[:12]
+    codigo = 0
+
+    unica = InstanciaUnica(f"klingo-launcher-{pasta_id}")  # uma abertura por vez nesta pasta
+    if unica.ja_rodando:
+        log.info("Já existe uma abertura em andamento; saindo")
+        return 0
+    try:
+        fluxo.executar(cfg)
+    except Exception as e:  # noqa: BLE001
+        _avisar_erro(e, pasta, segundos=300)
+        codigo = 1
+    finally:
+        unica.liberar()
+
+    # Mesmo se o painel falhou, o PC ainda precisa desligar no horário.
+    try:
+        desligar.vigiar(cfg, pasta_id)
+    except Exception as e:  # noqa: BLE001
+        _avisar_erro(e, pasta, segundos=300)
+        codigo = 1
+    return codigo
 
 
 if __name__ == "__main__":

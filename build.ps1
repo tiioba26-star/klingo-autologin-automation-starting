@@ -1,4 +1,5 @@
-# Gera dist\<perfil>\klingo-launcher.exe + config.toml para os 4 perfis.
+# Gera maquinas\<máquina>\ (exe + config.toml + links.json) para as 5 máquinas.
+# Antes, uma vez: credenciais.toml preenchido e (opcional) python ferramentas\descobrir_links.py
 # Uso:  powershell -ExecutionPolicy Bypass -File .\build.ps1
 
 $ErrorActionPreference = "Stop"
@@ -21,6 +22,6 @@ if (-not (Test-Path .venv)) {
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller falhou" }
 
 .\.venv\Scripts\python.exe ferramentas\montar_dist.py
-if ($LASTEXITCODE -ne 0) { throw "Falha ao montar dist" }
+if ($LASTEXITCODE -ne 0) { throw "Falha ao montar as pastas" }
 
-Write-Host "`nPronto. Copie cada pasta de dist\ para o PC correspondente." -ForegroundColor Green
+Write-Host "`nPronto. Copie cada pasta de maquinas\ para o PC correspondente." -ForegroundColor Green

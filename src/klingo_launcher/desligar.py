@@ -4,10 +4,45 @@ from __future__ import annotations
 
 import subprocess
 import time
+from datetime import datetime
 
 from .config import Config
-from .janelas import fechar_janelas_abertas, listar_janelas, perguntar_cancelar
+from .janelas import (
+    InstanciaUnica,
+    fechar_janelas_abertas,
+    listar_janelas,
+    manter_ligado,
+    perguntar_cancelar,
+)
 from .log import log
+
+
+def vigiar(cfg: Config, id_pasta: str) -> None:
+    """Fica rodando escondido até o horário e então desliga.
+
+    Substitui a tarefa agendada: basta o atalho no shell:startup.
+    """
+    d = cfg.desligamento
+    if not d.ativo:
+        log.info("Desligamento automático desativado no config")
+        return
+
+    unica = InstanciaUnica(f"klingo-vigia-{id_pasta}")
+    if unica.ja_rodando:
+        log.info("Vigia do desligamento já está rodando")
+        return
+
+    hh, mm = map(int, d.horario.split(":"))
+    alvo = datetime.now().replace(hour=hh, minute=mm, second=0, microsecond=0)
+    if datetime.now() >= alvo:
+        log.info("PC ligado depois das %s: hoje não desligo automaticamente", d.horario)
+        return
+
+    manter_ligado()
+    log.info("Aguardando até %s para desligar (tela e PC não vão dormir até lá)", d.horario)
+    while (falta := (alvo - datetime.now()).total_seconds()) > 0:
+        time.sleep(min(30, falta))  # em pedaços: acompanha ajustes de relógio
+    executar(cfg)
 
 
 def executar(cfg: Config, simular: bool = False) -> None:

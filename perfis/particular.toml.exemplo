@@ -28,7 +28,8 @@ caminho = ""                 # vazio = acha o Edge sozinho
 porta_cdp = 9222
 
 [desligamento]
-horario = "18:00"
+ativo = true                  # false = não desliga sozinho
+horario = "18:00"            # o exe fica rodando escondido até esta hora e desliga
 aviso_seg = 60               # caixa de aviso com botão Cancelar antes de desligar
 espera_fechar_apps_seg = 30  # tempo para os apps fecharem sozinhos
 forcar = true                # depois da espera, força o que sobrou (evita travar na tela de desligar)
