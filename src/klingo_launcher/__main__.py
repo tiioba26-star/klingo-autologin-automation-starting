@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 import traceback
 from pathlib import Path
@@ -78,7 +79,9 @@ def main(argv: list[str] | None = None) -> int:
             desligar.executar(cfg, simular=a.simular)
             return 0
 
-        unica = InstanciaUnica("klingo-launcher-abrir")
+        # Uma execução por pasta (cada pasta = um perfil).
+        pasta_id = hashlib.sha1(str(cfg.pasta).lower().encode()).hexdigest()[:12]
+        unica = InstanciaUnica(f"klingo-launcher-{pasta_id}")
         if unica.ja_rodando:
             log.info("Já existe uma execução em andamento; saindo")
             return 0

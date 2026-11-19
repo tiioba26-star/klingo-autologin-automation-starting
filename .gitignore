@@ -17,3 +17,4 @@ vozes.txt
 # Gravações brutas do codegen podem conter a senha digitada
 gravacoes/*.py
 credenciais.toml
+links.json

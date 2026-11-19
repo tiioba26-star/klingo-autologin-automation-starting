@@ -20,6 +20,7 @@ from .log import log
 
 DETACHED_PROCESS = 0x00000008
 CREATE_NEW_PROCESS_GROUP = 0x00000200
+CREATE_BREAKAWAY_FROM_JOB = 0x01000000
 
 
 class EdgeErro(Exception):
@@ -121,9 +122,18 @@ def abrir(exe: Path, perfil: Path, porta: int, url: str, kiosk: bool = True) -> 
         args.append(url)
 
     log.info("Abrindo Edge (kiosk=%s, porta CDP %d)", kiosk, porta)
+    flags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+    try:
+        # Sai do "job" do Agendador de Tarefas: o Edge não pode morrer junto com o exe.
+        _popen(args, flags | CREATE_BREAKAWAY_FROM_JOB)
+    except OSError:
+        _popen(args, flags)  # job não permite sair; abre normalmente
+
+
+def _popen(args: list[str], flags: int) -> None:
     subprocess.Popen(
         args,
-        creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+        creationflags=flags,
         close_fds=True,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,

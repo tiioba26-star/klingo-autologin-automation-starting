@@ -31,9 +31,12 @@ class Klingo:
 
 @dataclass(frozen=True)
 class Painel:
-    unidade: str
-    modo: str
-    voz: str
+    modo: str  # "painel" | "totem"
+    unidade: str  # 1ª lista da janela Localização (ex.: Instituto Oftalmológico da Bahia)
+    recepcao: str  # 2ª lista (ex.: RECEPÇÃO SUS)
+    totem_botao: str  # texto do botão do totem (só no modo totem)
+    voz: str  # nome ou pedaço do nome da voz (só no modo painel)
+    link: str  # link direto fixo (opcional; vazio = descobre e guarda sozinho)
 
 
 @dataclass(frozen=True)
@@ -72,6 +75,10 @@ class Config:
     @property
     def perfil_edge(self) -> Path:
         return self.pasta / "perfil-edge"
+
+    @property
+    def arquivo_links(self) -> Path:
+        return self.pasta / "links.json"
 
 
 def _secao(dados: dict, nome: str) -> dict:
@@ -120,9 +127,15 @@ def carregar(caminho: Path | None = None) -> Config:
             senha=_obrigatorio(k, "klingo", "senha"),
         ),
         painel=Painel(
-            unidade=_obrigatorio(p, "painel", "unidade"),
             modo=modo,
+            unidade=_obrigatorio(p, "painel", "unidade"),
+            recepcao=_obrigatorio(p, "painel", "recepcao"),
+            totem_botao=(
+                _obrigatorio(p, "painel", "totem_botao") if modo == "totem"
+                else str(p.get("totem_botao", "")).strip()
+            ),
             voz=str(p.get("voz", "")).strip(),
+            link=str(p.get("link", "")).strip(),
         ),
         tempos=Tempos(
             atraso_inicial_seg=int(t.get("atraso_inicial_seg", 15)),

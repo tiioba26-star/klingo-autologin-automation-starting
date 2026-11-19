@@ -2,21 +2,25 @@
 # Renomeie para config.toml e coloque na mesma pasta do klingo-launcher.exe.
 
 [klingo]
-url = "PREENCHER"            # endereço da tela de login da Klingo
+url = "PREENCHER"            # https://ioba.klingo.app/#/
 usuario = "PREENCHER"        # mesmo usuário para todas as máquinas
 senha = "PREENCHER"
 
 [painel]
-unidade = "Recepção Consultório"
 modo = "totem"                  # "painel" ou "totem"
-voz = ""                   # nome (ou pedaço do nome) da voz; rode o exe com --vozes para ver as opções
+# Nomes EXATOS como aparecem na janela "Localização" da Klingo (acentos e maiúsculas não importam):
+unidade = "Instituto Oftalmológico da Bahia"
+recepcao = "RECEPÇÃO SUS"              # RECEPCAO CONSULTORIO | RECEPCAO FARMACIA | RECEPÇÃO PARTICULAR | RECEPÇÃO SUS
+totem_botao = "Totem para Check-In (Dt Nasc)"           # só no modo totem: texto exato do botão na janela Localização
+voz = ""                   # só no modo painel: nome ou pedaço (Francisca, Antonio, Thalita). Veja com --vozes
+link = ""                    # vazio = o exe descobre o link sozinho (com login) e guarda em links.json
 
 [tempos]
 atraso_inicial_seg = 15      # espera antes de começar (internet subir)
 espera_internet_max_seg = 300
-espera_pausado_seg = 90      # se aparecer "pausado por segundo acesso", espera isto...
-jitter_max_seg = 30          # ...mais um sorteio de 0 a N s, para as máquinas não baterem juntas
-max_tentativas = 10
+espera_pausado_seg = 90      # se aparecer "Pausado devido a segundo acesso", espera isto...
+jitter_max_seg = 30          # ...mais um sorteio de 0 a N s, e então clica em Retomar
+max_tentativas = 10          # máximo de pausas seguidas antes de desistir
 timeout_passo_seg = 30
 
 [edge]

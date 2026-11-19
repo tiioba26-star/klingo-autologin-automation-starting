@@ -1,17 +1,26 @@
 # Klingo Autologin — painéis de chamada e totem
 
-Ao entrar no Windows, o `klingo-launcher.exe` espera a internet, abre o **Microsoft Edge em kiosk (tela cheia)**, faz login na Klingo, escolhe a unidade e a voz e abre o **painel de chamada** ou o **totem**. Às **18h** o PC avisa, fecha os apps e desliga.
+Ao entrar no Windows, o `klingo-launcher.exe` espera a internet, abre o **Microsoft Edge em kiosk (tela cheia)** e abre o **painel de chamada** (com voz escolhida + "Chamada de Voz") ou o **totem**. Às **18h** o PC avisa, fecha os apps e desliga.
 
-O Edge é obrigatório porque só ele tem as vozes naturais online (Francisca, Antônio, Thalita).
+O Edge é obrigatório porque só ele tem as vozes naturais online (Francisca, Antônio, Thalita multilíngue).
+
+## Como funciona
+
+Os links do painel (`ioba.klingo.app/#/painel/...`) e do totem (`api.klingo.app/reg-checkin/...`) **abrem sem login**. Então:
+
+1. **Caminho normal (~8 s):** abre o link guardado em `links.json`. No painel, escolhe a voz e clica em "Iniciar o Painel com Chamada de Voz".
+2. **Plano B** (primeira vez, mudança no config ou link que parou de funcionar): faz login → Recepção → janela **Localização** → escolhe a unidade e a recepção do config → Atualizar → pega o link → guarda em `links.json` → **sai da conta** → abre o link.
 
 ## Perfis
 
-| Pasta | Máquinas | Unidade | Tela | Voz |
+| Pasta | Máquinas | Recepção | Tela | Voz |
 |---|---|---|---|---|
-| `particular` | 2 | Recepção Particular | painel | Francisca |
-| `consultorio` | 1 | Recepção Consultório | painel | Antônio |
-| `farmacia` | 1 | Recepção Farmácia | painel | Francisca |
-| `totem` | 1 | Recepção Consultório | totem | — |
+| `particular` | 2 | RECEPÇÃO PARTICULAR | painel | Francisca |
+| `consultorio` | 1 | RECEPCAO CONSULTORIO | painel | Antônio |
+| `farmacia` | 1 | RECEPCAO FARMACIA | painel | Francisca |
+| `totem` | 1 | RECEPÇÃO SUS | Totem para Check-In (Dt Nasc) | — |
+
+Para mudar a recepção, o botão do totem ou a voz, edite `[painel]` no `config.toml` com o nome **exato** que aparece na Klingo (acento e maiúscula não importam). Na próxima execução o exe descobre o link novo sozinho.
 
 Cada pasta tem só **`klingo-launcher.exe` + `config.toml`**. O exe é o mesmo nas 4; o que muda é o `config.toml`.
 
@@ -45,11 +54,12 @@ Para remover: `klingo-launcher.exe --desinstalar`.
 
 ## "Pausado por segundo acesso"
 
-A Klingo só deixa uma sessão abrindo por vez. Se aparecer essa mensagem, o exe espera `espera_pausado_seg` mais um sorteio de 0 a `jitter_max_seg` segundos, recarrega e tenta de novo, até `max_tentativas` vezes. O sorteio evita que as 5 máquinas tentem ao mesmo tempo.
+Só acontece no plano B, porque o caminho normal não faz login. A Klingo só deixa uma sessão por usuário. Se aparecer **"Pausado devido a segundo acesso"**, o exe espera `espera_pausado_seg` mais um sorteio de 0 a `jitter_max_seg` segundos e clica em **Retomar**, até `max_tentativas` vezes. O sorteio evita que as máquinas fiquem tomando a sessão umas das outras.
 
 ## Problemas
 
 - Tudo fica registrado em **`klingo.log`**, na pasta do exe.
+- Para forçar a busca de um link novo, apague o `links.json`.
 - Se falhar, aparece uma caixa de erro e o Edge continua aberto para alguém logar à mão.
 - Se a Klingo mudar a tela, ajuste só [`src/klingo_launcher/seletores.py`](src/klingo_launcher/seletores.py) e rode o build de novo.
 - Para sair do kiosk: `Alt+F4`.

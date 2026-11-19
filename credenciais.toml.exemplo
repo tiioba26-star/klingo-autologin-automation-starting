@@ -2,7 +2,7 @@
 # O build.ps1 usa estes valores para preencher o config.toml das 4 pastas.
 
 [klingo]
-url = "https://..."
+url = "https://ioba.klingo.app/#/"
 usuario = ""
 senha = ""
 voz = "Thalita"
