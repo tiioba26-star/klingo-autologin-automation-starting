@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import json
 import random
+import socket
 import time
 import unicodedata
-import urllib.error
-import urllib.request
+import urllib.parse
 
 from playwright.sync_api import Browser, Locator, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PWTimeout
@@ -43,21 +43,26 @@ def aguardar_rede(cfg: Config) -> None:
     log.info("Aguardando %ds antes de começar (internet subir)", atraso)
     time.sleep(atraso)
 
+    # Só testa se o servidor atende (DNS + TCP 443), SEM validar certificado em Python:
+    # o Python só conhece os certificados raiz já baixados no Windows e falha em PCs onde
+    # o Edge ainda não os buscou. Quem abre a página (e valida o HTTPS) é o Edge.
+    url = urllib.parse.urlsplit(cfg.klingo.url)
+    host, porta = url.hostname or "", url.port or (443 if url.scheme == "https" else 80)
     limite = time.monotonic() + cfg.tempos.espera_internet_max_seg
     while True:
         try:
-            urllib.request.urlopen(cfg.klingo.url, timeout=10).close()
-            break
-        except urllib.error.HTTPError:
-            break  # qualquer resposta HTTP prova que a rede está de pé
+            socket.create_connection((host, porta), timeout=10).close()
+            log.info("Klingo respondeu (%s:%d)", host, porta)
+            return
         except OSError as e:
             if time.monotonic() > limite:
-                raise FluxoErro(
-                    f"Sem acesso à Klingo depois de {cfg.tempos.espera_internet_max_seg}s: {e}"
-                ) from e
+                log.warning(
+                    "Klingo não respondeu em %ds (%s); abrindo o Edge mesmo assim",
+                    cfg.tempos.espera_internet_max_seg, e,
+                )
+                return
             log.info("Klingo ainda inacessível (%s), tentando de novo em 10s", e)
             time.sleep(10)
-    log.info("Klingo respondeu")
 
 
 def _chave(cfg: Config) -> str:

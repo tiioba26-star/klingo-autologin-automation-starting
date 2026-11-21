@@ -144,10 +144,12 @@ def _popen(args: list[str], flags: int) -> None:
 def esperar_cdp(porta: int, timeout_seg: int = 60) -> str:
     """Espera o Edge responder na porta CDP e devolve o endpoint para o Playwright."""
     endpoint = f"http://127.0.0.1:{porta}"
+    # Sem proxy: em PCs com proxy configurado no Windows, até o 127.0.0.1 iria para ele.
+    sem_proxy = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     limite = time.monotonic() + timeout_seg
     while time.monotonic() < limite:
         try:
-            with urllib.request.urlopen(f"{endpoint}/json/version", timeout=2) as r:
+            with sem_proxy.open(f"{endpoint}/json/version", timeout=2) as r:
                 if r.status == 200:
                     return endpoint
         except OSError:
