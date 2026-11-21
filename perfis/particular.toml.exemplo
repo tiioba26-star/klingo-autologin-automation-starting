@@ -12,7 +12,7 @@ modo = "painel"                  # "painel" ou "totem"
 unidade = "Instituto Oftalmológico da Bahia"
 recepcao = "RECEPÇÃO PARTICULAR"              # RECEPCAO CONSULTORIO | RECEPCAO FARMACIA | RECEPÇÃO PARTICULAR | RECEPÇÃO SUS
 totem_botao = ""           # só no modo totem: texto exato do botão na janela Localização
-voz = "Francisca"                   # só no modo painel: nome ou pedaço (Francisca, Antonio, Thalita). Veja com --vozes
+voz = "Thalita"                     # só no modo painel: nome ou pedaço (Francisca, Antonio, Thalita). Veja com --vozes
 link = ""                    # vazio = o exe descobre o link sozinho (com login) e guarda em links.json
 
 [tempos]

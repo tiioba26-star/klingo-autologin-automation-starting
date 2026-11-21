@@ -10,8 +10,7 @@ Saem prontas em `maquinas\` (pasta fora do git porque contém a senha):
 
 | Pasta | Recepção | Tela | Voz |
 |---|---|---|---|
-| `particular-1` | RECEPÇÃO PARTICULAR | painel | Francisca |
-| `particular-2` | RECEPÇÃO PARTICULAR | painel | Francisca |
+| `particular` (usada nos 2 PCs) | RECEPÇÃO PARTICULAR | painel | Thalita |
 | `consultorio` | RECEPCAO CONSULTORIO | painel | Antônio |
 | `farmacia` | RECEPCAO FARMACIA | painel | Francisca |
 | `totem` | RECEPÇÃO SUS | Totem para Check-In (Dt Nasc) | — |

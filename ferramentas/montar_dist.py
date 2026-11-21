@@ -22,8 +22,7 @@ SAIDA = RAIZ / "maquinas"
 
 # pasta da máquina -> perfil (perfis/<perfil>.toml.exemplo)
 MAQUINAS = {
-    "particular-1": "particular",
-    "particular-2": "particular",
+    "particular": "particular",  # mesma pasta para os 2 PCs da recepção particular
     "consultorio": "consultorio",
     "farmacia": "farmacia",
     "totem": "totem",
